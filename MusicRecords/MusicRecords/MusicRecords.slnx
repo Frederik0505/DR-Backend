@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="MusicRecords/MusicRecords.csproj" />
+  <Project Path="TestProject1/TestProject1.csproj" Id="b9ebf737-8baa-452b-be30-dc4c4609cfe2" />
 </Solution>
