@@ -1,0 +1,34 @@
+@MusicRecords_HostAddress = http://localhost:5102
+
+### Hent alle musikplader
+GET {{MusicRecords_HostAddress}}/api/MusicRecords
+Accept: application/json
+
+### Hent musikplade med Id 1
+GET {{MusicRecords_HostAddress}}/api/MusicRecords/1
+Accept: application/json
+
+### Opret musikplade
+POST {{MusicRecords_HostAddress}}/api/MusicRecords
+Content-Type: application/json
+
+{
+  "title": "The Dark Side of the Moon",
+  "artist": "Pink Floyd",
+  "duration": 2580,
+  "publicationYear": 1973
+}
+
+### Opdater musikplade med Id 1
+PUT {{MusicRecords_HostAddress}}/api/MusicRecords/1
+Content-Type: application/json
+
+{
+  "title": "Abbey Road (Remastered)",
+  "artist": "The Beatles",
+  "duration": 2847,
+  "publicationYear": 1969
+}
+
+### Slet musikplade med Id 3
+DELETE {{MusicRecords_HostAddress}}/api/MusicRecords/3
