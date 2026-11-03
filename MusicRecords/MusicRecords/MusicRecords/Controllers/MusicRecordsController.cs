@@ -1,5 +1,5 @@
-using MusicRecords.Models;
 using Microsoft.AspNetCore.Mvc;
+using MusicRecords.Models;
 using MusicRecords.Repositories;
 
 namespace MusicRecords.Controllers
@@ -20,11 +20,12 @@ namespace MusicRecords.Controllers
         // GET: api/MusicRecords
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<MusicRecord> Get()
+        public ActionResult<IEnumerable<MusicRecord>> Get([FromQuery] string? title = null, [FromQuery] string? artist = null)
         {
-            return Ok(_musicRecordsRepository.GetAll());
+            return Ok(_musicRecordsRepository.GetAll(title, artist));
         }
 
-       
+
+
     }
 }
