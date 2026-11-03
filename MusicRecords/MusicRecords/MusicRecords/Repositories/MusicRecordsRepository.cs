@@ -18,9 +18,21 @@ namespace MusicRecords.Repositories
 
         }
 
-        public IEnumerable<MusicRecord> GetAll()
+        public IEnumerable<MusicRecord> GetAll(string? title = null, string? artist = null)
         {
-            return new List<MusicRecord>(_musicRecords);
+            var records = _musicRecords.AsEnumerable();
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                records = records.Where(r => r.Title.Contains(title));
+            }
+
+            if (!string.IsNullOrEmpty(artist))
+            {
+                records = records.Where(r => r.Artist.Contains(artist));
+            }
+
+            return records.ToList();
         }
 
     }
