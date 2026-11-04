@@ -9,13 +9,11 @@ namespace MusicRecords.Controllers
     public class MusicRecordsController : ControllerBase
     {
         private readonly IMusicRecordsRepository _musicRecordsRepository;
-        private static int _nextId = 4;
 
         public MusicRecordsController(IMusicRecordsRepository musicRecordsRepository)
         {
             _musicRecordsRepository = musicRecordsRepository;
         }
-
 
         // GET: api/MusicRecords
         [HttpGet]
@@ -25,6 +23,25 @@ namespace MusicRecords.Controllers
             return Ok(_musicRecordsRepository.GetAll());
         }
 
-       
+        // POST: api/MusicRecords
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<MusicRecord> Post(MusicRecord record)
+        {
+            if (record == null || !record.IsValid())
+            {
+                return BadRequest();
+            }
+
+            var newRecord = _musicRecordsRepository.Add(record);
+
+            if (newRecord == null)
+            {
+                return BadRequest();
+            }
+
+            return StatusCode(201, newRecord);
+        }
     }
 }
