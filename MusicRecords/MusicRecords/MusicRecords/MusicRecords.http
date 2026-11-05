@@ -1,34 +1,72 @@
 @MusicRecords_HostAddress = http://localhost:5102
 
-### Hent alle musikplader
-GET {{MusicRecords_HostAddress}}/api/MusicRecords
+### Hent plader (offentlig)
+GET {{MusicRecords_HostAddress}}/api/musicrecords
 Accept: application/json
 
-### Hent musikplade med Id 1
-GET {{MusicRecords_HostAddress}}/api/MusicRecords/1
+### Hent plade med ID 1 (offentlig)
+GET {{MusicRecords_HostAddress}}/api/musicrecords/1
 Accept: application/json
 
-### Opret musikplade
-POST {{MusicRecords_HostAddress}}/api/MusicRecords
+### Log ind - kopiér token fra svaret til @token nedenfor
+POST {{MusicRecords_HostAddress}}/api/auth/login
 Content-Type: application/json
 
 {
-  "title": "The Dark Side of the Moon",
-  "artist": "Pink Floyd",
-  "duration": 2580,
-  "publicationYear": 1973
+  "username": "admin",
+  "password": "DR-Local-Demo-2026!"
 }
 
-### Opdater musikplade med Id 1
-PUT {{MusicRecords_HostAddress}}/api/MusicRecords/1
+### Udfyld med JWT fra login-svaret (uden ordet Bearer)
+@token = PASTE_JWT_HERE
+
+### 200: Gyldig rettelse med token
+PUT {{MusicRecords_HostAddress}}/api/musicrecords/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
+  "id": 1,
   "title": "Abbey Road (Remastered)",
+  "artist": "The Beatles",
+  "duration": 2900,
+  "publicationYear": 1969
+}
+
+### 401: Intet token
+PUT {{MusicRecords_HostAddress}}/api/musicrecords/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Abbey Road",
   "artist": "The Beatles",
   "duration": 2847,
   "publicationYear": 1969
 }
 
-### Slet musikplade med Id 3
-DELETE {{MusicRecords_HostAddress}}/api/MusicRecords/3
+### 400: Ugyldig varighed (kræver token)
+PUT {{MusicRecords_HostAddress}}/api/musicrecords/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Abbey Road",
+  "artist": "The Beatles",
+  "duration": -3,
+  "publicationYear": 1969
+}
+
+### 404: Ukendt Id (kræver token)
+PUT {{MusicRecords_HostAddress}}/api/musicrecords/999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "id": 999,
+  "title": "Abbey Road",
+  "artist": "The Beatles",
+  "duration": 2847,
+  "publicationYear": 1969
+}

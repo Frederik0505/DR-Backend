@@ -2,10 +2,12 @@ using MusicRecords.Models;
 
 namespace MusicRecords.Repositories
 {
-    public interface IMusicRecordsRepository
-    {
-        public IEnumerable<MusicRecord> GetAll();
 
-        public MusicRecord? Add(MusicRecord record);
-    }
+  public interface IMusicRecordsRepository
+  {
+      IEnumerable<MusicRecord> GetAll(string? title = null, string? artist = null);
+      MusicRecord? Add(MusicRecord record);
+      MusicRecord? GetById(int id);
+      MusicRecord? Update(int id, MusicRecord record);
+  }
 }
