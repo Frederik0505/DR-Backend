@@ -13,14 +13,13 @@ public class MusicRecordsController : ControllerBase
 
     public MusicRecordsController(IMusicRecordsRepository musicRecordsRepository)
     {
-        _musicRecordsRepository = musicRecordsRepository;
-    }
-
+        private readonly IMusicRecordsRepository _musicRecordsRepository;
+    // GET: api/MusicRecords
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<MusicRecord>> Get([FromQuery] string? title = null, [FromQuery] string? artist = null)
         => Ok(_musicRecordsRepository.GetAll(title, artist));
-
+       
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(MusicRecord), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -47,6 +46,27 @@ public class MusicRecordsController : ControllerBase
         catch (ArgumentException exception)
         {
             return BadRequest(new { message = exception.Message });
+        }
+
+        // POST: api/MusicRecords
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<MusicRecord> Post(MusicRecord record)
+        {
+            if (record == null || !record.IsValid())
+            {
+                return BadRequest();
+            }
+
+            var newRecord = _musicRecordsRepository.Add(record);
+
+            if (newRecord == null)
+            {
+                return BadRequest();
+            }
+
+            return StatusCode(201, newRecord);
         }
     }
 }
