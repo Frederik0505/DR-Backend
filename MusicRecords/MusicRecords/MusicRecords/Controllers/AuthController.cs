@@ -1,5 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,12 @@ using MusicRecords.Repositories;
 
 namespace MusicRecords.Controllers
 {
+
+public sealed class LoginRequest
+{
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
