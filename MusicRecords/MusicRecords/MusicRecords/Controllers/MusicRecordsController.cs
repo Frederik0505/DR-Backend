@@ -14,6 +14,8 @@ public class MusicRecordsController : ControllerBase
     public MusicRecordsController(IMusicRecordsRepository musicRecordsRepository)
     {
         private readonly IMusicRecordsRepository _musicRecordsRepository;
+    }
+    
     // GET: api/MusicRecords
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -48,6 +50,24 @@ public class MusicRecordsController : ControllerBase
             return BadRequest(new { message = exception.Message });
         }
 
+        // US5: DELETE api/MusicRecords/1
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Delete(int id)
+        {
+            // Forsøger at slette pladen med det angivne ID
+            bool deleted = _musicRecordsRepository.Delete(id);
+
+            // Hvis pladen ikke findes, returneres 404
+            if (!deleted)
+            {
+                return NotFound();
+            }
+
+            // Hvis pladen blev slettet, returneres 200
+            return Ok();
+            
         // POST: api/MusicRecords
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
