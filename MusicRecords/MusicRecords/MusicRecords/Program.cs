@@ -4,7 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using MusicRecords.Repositories;
 using Microsoft.OpenApi;
 
-
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
@@ -38,19 +37,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-builder.Services.AddAuthorization();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new()
 // Restrict browser origins in production; local development stays convenient.
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy("WebClient", policy =>
@@ -91,13 +77,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DR Music Records REST API v1");
-        c.RoutePrefix = string.Empty;
-    });
-}
-
-app.UseCors("AllowAll");
-app.UseAuthentication(); // skal stå FØR UseAuthorization
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "DR Music Records REST API v1");
         options.RoutePrefix = string.Empty;
     });

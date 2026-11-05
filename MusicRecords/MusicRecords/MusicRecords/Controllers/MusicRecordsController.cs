@@ -13,7 +13,7 @@ public class MusicRecordsController : ControllerBase
 
     public MusicRecordsController(IMusicRecordsRepository musicRecordsRepository)
     {
-        private readonly IMusicRecordsRepository _musicRecordsRepository;
+        _musicRecordsRepository = musicRecordsRepository;
     }
     
     // GET: api/MusicRecords
@@ -22,7 +22,7 @@ public class MusicRecordsController : ControllerBase
     public ActionResult<IEnumerable<MusicRecord>> Get([FromQuery] string? title = null, [FromQuery] string? artist = null)
         => Ok(_musicRecordsRepository.GetAll(title, artist));
        
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     [ProducesResponseType(typeof(MusicRecord), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<MusicRecord> GetById(int id)
@@ -31,7 +31,7 @@ public class MusicRecordsController : ControllerBase
         return record is null ? NotFound() : Ok(record);
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id}")]
     [Authorize(Roles = "Administrator")]
     [ProducesResponseType(typeof(MusicRecord), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -49,44 +49,46 @@ public class MusicRecordsController : ControllerBase
         {
             return BadRequest(new { message = exception.Message });
         }
-
-        // US5: DELETE api/MusicRecords/1
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(int id)
-        {
-            // Forsøger at slette pladen med det angivne ID
-            bool deleted = _musicRecordsRepository.Delete(id);
-
-            // Hvis pladen ikke findes, returneres 404
-            if (!deleted)
-            {
-                return NotFound();
-            }
-
-            // Hvis pladen blev slettet, returneres 200
-            return Ok();
-            
-        // POST: api/MusicRecords
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<MusicRecord> Post(MusicRecord record)
-        {
-            if (record == null || !record.IsValid())
-            {
-                return BadRequest();
-            }
-
-            var newRecord = _musicRecordsRepository.Add(record);
-
-            if (newRecord == null)
-            {
-                return BadRequest();
-            }
-
-            return StatusCode(201, newRecord);
-        }
     }
+
+    // US5: DELETE api/MusicRecords/1
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult Delete(int id)
+    {
+        // Forsøger at slette pladen med det angivne ID
+        bool deleted = _musicRecordsRepository.Delete(id);
+
+        // Hvis pladen ikke findes, returneres 404
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        // Hvis pladen blev slettet, returneres 200
+        return Ok();
+    }
+            
+    // POST: api/MusicRecords
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public ActionResult<MusicRecord> Post(MusicRecord record)
+    {
+        if (record == null || !record.IsValid())
+        {
+            return BadRequest();
+        }
+
+        var newRecord = _musicRecordsRepository.Add(record);
+
+        if (newRecord == null)
+        {
+            return BadRequest();
+        }
+
+        return StatusCode(201, newRecord);
+    }
+    
 }

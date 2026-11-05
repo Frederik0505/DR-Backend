@@ -133,6 +133,9 @@ namespace TestProject1
             var result = _musicRecordsRepository.Add(record);
 
             Assert.NotNull(result);
+        }
+
+        [Fact]
         public void GetAll_WithTitleFilter_ReturnsFilteredData()
         {
             var result = _musicRecordsRepository.GetAll(title: "Abbey Road");

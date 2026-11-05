@@ -12,7 +12,7 @@ namespace MusicRecords.Repositories
         {
             _users = new List<User>
             {
-                CreateUser("admin", "admin123", "Admin"),
+                CreateUser("admin", "admin123", "Administrator"),
                 CreateUser("bruger", "bruger123", "User")
             };
         }
