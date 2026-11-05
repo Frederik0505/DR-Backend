@@ -1,8 +1,10 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using MusicRecords.Repositories;
 using Microsoft.OpenApi;
+using MusicRecords.Data;
+using MusicRecords.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -14,9 +16,16 @@ if (!builder.Environment.IsDevelopment()
     && jwtKey == "DR-US6-DEVELOPMENT-ONLY-SIGNING-KEY-NEVER-USE-IN-PRODUCTION")
     throw new InvalidOperationException("Udskift udviklingsnøglen før publicering.");
 
+// --- DATABASE (NYT) ---
+var connectionString = builder.Configuration.GetConnectionString("MusicRecordsDb")
+    ?? throw new InvalidOperationException("Mangler ConnectionStrings:MusicRecordsDb (User Secrets eller Azure).");
+
+builder.Services.AddDbContext<MusicRecordsDbContext>(options =>
+    options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IMusicRecordsRepository, MusicRecordsRepository>();
-builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IMusicRecordsRepository, MusicRecordsRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddOpenApi();
 
 // JWT-validering
@@ -62,7 +71,6 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT",
         Description = "Indsæt den JWT, du fik fra POST /api/auth/login."
     });
-    // The HTTP API still allows anonymous GET and login.
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         [new OpenApiSecuritySchemeReference("bearer", document)] = []
@@ -70,6 +78,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// --- SEED BRUGERE (NYT) ---
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<MusicRecordsDbContext>();
+    UserRepository.SeedIfEmpty(db);
+}
 
 if (app.Environment.IsDevelopment())
 {
