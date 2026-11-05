@@ -24,12 +24,12 @@ namespace MusicRecords.Repositories
 
             if (!string.IsNullOrEmpty(title))
             {
-                records = records.Where(r => r.Title.Contains(title));
+                records = records.Where(r => r.Title.Contains(title, StringComparison.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrEmpty(artist))
             {
-                records = records.Where(r => r.Artist.Contains(artist));
+                records = records.Where(r => r.Artist.Contains(artist, StringComparison.OrdinalIgnoreCase));
             }
 
             return records.ToList();
