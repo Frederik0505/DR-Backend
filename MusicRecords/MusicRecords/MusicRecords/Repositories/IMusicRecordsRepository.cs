@@ -1,10 +1,10 @@
-﻿using MusicRecords.Models;
+using MusicRecords.Models;
 
-namespace MusicRecords.Repositories
+namespace MusicRecords.Repositories;
+
+public interface IMusicRecordsRepository
 {
-    public interface IMusicRecordsRepository
-    {
-
-        public IEnumerable<MusicRecord> GetAll(string? title = null, string? artist = null);
-    }
+    IEnumerable<MusicRecord> GetAll(string? title = null, string? artist = null);
+    MusicRecord? GetById(int id);
+    MusicRecord? Update(int id, MusicRecord record);
 }
