@@ -5,73 +5,72 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MusicRecords.Models;
+using MusicRecords.Repositories;
 
-namespace MusicRecords.Controllers;
+namespace MusicRecords.Controllers
+{
 
 public sealed class LoginRequest
 {
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
 }
-
-[ApiController]
-[Route("api/auth")]
-public sealed class AuthController : ControllerBase
-{
-    private readonly IConfiguration _configuration;
-
-    public AuthController(IConfiguration configuration)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
     {
-        _configuration = configuration;
-    }
+        private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
 
-    // The sample has one administrator. Credentials must come from configuration,
-    // not from the browser. Replace with the project's real US3 login when merging.
-    [HttpPost("login")]
-    [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public IActionResult Login([FromBody] LoginRequest request)
-    {
-        var username = _configuration["Auth:Username"];
-        var password = _configuration["Auth:Password"];
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)
-            || !SecureEquals(username, request.Username)
-            || !SecureEquals(password, request.Password))
+        public AuthController(IUserRepository userRepository, IConfiguration configuration)
         {
-            return Unauthorized(new { message = "Forkert brugernavn eller adgangskode." });
+            _userRepository = userRepository;
+            _configuration = configuration;
         }
 
-        var claims = new[]
+        // POST: api/Auth/login
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult<LoginResponse> Login([FromBody] LoginRequest request)
         {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, "Administrator")
-        };
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expiration = DateTime.UtcNow.AddHours(1);
-        var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: expiration,
-            signingCredentials: credentials);
+            var user = _userRepository.ValidateUser(request.Username, request.Password);
+            if (user == null)
+                return Unauthorized("Forkert brugernavn eller adgangskode");
 
-        return Ok(new
+            return Ok(new LoginResponse { Token = CreateToken(user) });
+        }
+
+        // GET: api/Auth/me – kræver gyldig token, bruges til at teste JWT-valideringen
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult Me()
         {
-            token = new JwtSecurityTokenHandler().WriteToken(token),
-            username,
-            roles = new[] { "Administrator" },
-            expiresAtUtc = expiration
-        });
-    }
+            return Ok(new
+            {
+                username = User.Identity?.Name,
+                roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value)
+            });
+        }
 
-    private static bool SecureEquals(string expected, string actual)
-    {
-        // Hash both inputs first so the constant-time operation has equal-length operands.
-        var left = SHA256.HashData(Encoding.UTF8.GetBytes(expected));
-        var right = SHA256.HashData(Encoding.UTF8.GetBytes(actual ?? string.Empty));
-        return CryptographicOperations.FixedTimeEquals(left, right);
+        private string CreateToken(User user)
+        {
+            var claims = new List<Claim> { new(ClaimTypes.Name, user.Username) };
+            claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }
