@@ -7,8 +7,7 @@ namespace TestProject1;
 
 public class UpdateTests
 {
-    private readonly MusicRecordsRepository _repository = new();
-
+    private readonly MusicRecordsRepository _repository = new(TestDb.Create());
     private static MusicRecord ValidRecord() => new()
     {
         Id = 1, Title = "Abbey Road (Remastered)", Artist = "The Beatles",

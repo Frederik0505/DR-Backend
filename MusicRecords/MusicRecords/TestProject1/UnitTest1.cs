@@ -9,7 +9,7 @@ namespace TestProject1
 
         public MusicRecordsTest()
         {
-            _musicRecordsRepository = new MusicRecordsRepository();
+            _musicRecordsRepository = new MusicRecordsRepository(TestDb.Create());
         }
 
         [Fact]
