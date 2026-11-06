@@ -50,10 +50,10 @@ builder.Services.AddAuthorization();
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddPolicy("WebClient", policy =>
 {
-    if (builder.Environment.IsDevelopment())
+   // if (builder.Environment.IsDevelopment())
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-    else
-        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+    //else
+        //policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
 }));
 
 builder.Services.AddSwaggerGen(options =>
