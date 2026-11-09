@@ -1,0 +1,102 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MusicRecords.Controllers;
+using MusicRecords.Models;
+using MusicRecords.Repositories;
+
+namespace TestProject1;
+
+public class UpdateTests
+{
+    private readonly MusicRecordsRepository _repository = new(TestDb.Create());
+    private static MusicRecord ValidRecord() => new()
+    {
+        Id = 1, Title = "Abbey Road (Remastered)", Artist = "The Beatles",
+        Duration = 2900, PublicationYear = 1969
+    };
+
+    [Fact]
+    public void Put_RequiresAdministratorRole()
+    {
+        var method = typeof(MusicRecordsController).GetMethod(nameof(MusicRecordsController.Put));
+        var authorize = method?.GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+            .Cast<AuthorizeAttribute>()
+            .SingleOrDefault();
+
+        Assert.NotNull(authorize);
+        Assert.Equal("Administrator", authorize!.Roles);
+    }
+
+    [Fact]
+    public void Update_ValidRecord_ChangesTheRecord()
+    {
+        var result = _repository.Update(1, ValidRecord());
+        Assert.NotNull(result);
+        Assert.Equal("Abbey Road (Remastered)", result.Title);
+        Assert.Equal(2900, _repository.GetById(1)!.Duration);
+        Assert.Equal("Abbey Road (Remastered)", _repository.GetAll().First().Title);
+    }
+
+    [Theory]
+    [InlineData(" ", "The Beatles", 2400, 1969)]
+    [InlineData("Abbey Road", "", 2400, 1969)]
+    [InlineData("Abbey Road", "The Beatles", 0, 1969)]
+    [InlineData("Abbey Road", "The Beatles", -1, 1969)]
+    [InlineData("Abbey Road", "The Beatles", 2400, 1500)]
+    public void Update_InvalidRecord_ThrowsAndDoesNotModifyRecord(
+        string title, string artist, int duration, int year)
+    {
+        var record = ValidRecord();
+        record.Title = title;
+        record.Artist = artist;
+        record.Duration = duration;
+        record.PublicationYear = year;
+
+        Assert.Throws<ArgumentException>(() => _repository.Update(1, record));
+        Assert.Equal("Abbey Road", _repository.GetById(1)!.Title);
+    }
+
+    [Fact]
+    public void Update_MismatchedIds_ThrowsArgumentException()
+    {
+        var record = ValidRecord();
+        record.Id = 2;
+        Assert.Throws<ArgumentException>(() => _repository.Update(1, record));
+    }
+
+    [Fact]
+    public void Update_UnknownId_ReturnsNull()
+    {
+        var record = ValidRecord();
+        record.Id = 0; // Id may be omitted in the JSON body.
+        Assert.Null(_repository.Update(999, record));
+    }
+
+    [Fact]
+    public void Put_ValidRecord_Returns200()
+    {
+        var controller = new MusicRecordsController(_repository);
+        var result = controller.Put(1, ValidRecord());
+        Assert.IsType<OkObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public void Put_InvalidRecord_Returns400()
+    {
+        var controller = new MusicRecordsController(_repository);
+        var record = ValidRecord();
+        record.Duration = -4;
+        var result = controller.Put(1, record);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public void Put_UnknownId_Returns404()
+    {
+        var controller = new MusicRecordsController(_repository);
+        var record = ValidRecord();
+        record.Id = 0;
+        var result = controller.Put(10000, record);
+        Assert.IsType<NotFoundResult>(result.Result);
+    }
+}

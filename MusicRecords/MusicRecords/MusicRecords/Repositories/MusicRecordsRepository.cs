@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MusicRecords.Data;
 using MusicRecords.Models;
@@ -39,6 +40,7 @@ public class MusicRecordsRepository : IMusicRecordsRepository
         return record; // Id er nu udfyldt af databasen
     }
 
+    
     public MusicRecord? Update(int id, MusicRecord record)
     {
         Validate(id, record);

@@ -53,6 +53,7 @@ public class MusicRecordsController : ControllerBase
 
     // US5: DELETE api/MusicRecords/1
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Administrator")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult Delete(int id)
