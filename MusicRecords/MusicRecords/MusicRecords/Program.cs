@@ -78,7 +78,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
-
+//testing actions
 // --- SEED BRUGERE (NYT) ---
 using (var scope = app.Services.CreateScope())
 {
