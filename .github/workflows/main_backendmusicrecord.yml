@@ -26,6 +26,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build MusicRecords/MusicRecords/MusicRecords.slnx --configuration Release
 
+      - name: Run unit tests
+        run: dotnet test MusicRecords/MusicRecords/TestProject1/TestProject1.csproj --configuration Release --no-build --verbosity normal
+
       - name: dotnet publish
         run: dotnet publish MusicRecords/MusicRecords/MusicRecords/MusicRecords.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
